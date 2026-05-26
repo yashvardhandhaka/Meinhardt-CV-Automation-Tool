@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meinhardt CV Automation</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#upload" aria-label="Meinhardt CV Automation home">
+        <span class="mark" aria-hidden="true"></span>
+        <span>
+          <strong>Meinhardt CV Automation</strong>
+          <small>Client CV converter</small>
+        </span>
+      </a>
+      <nav aria-label="Page sections">
+        <a href="#upload">Upload</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#results">Results</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="upload">
+        <div class="hero-copy">
+          <p class="eyebrow">DOCX template + resume batch</p>
+          <h1>Generate client-ready CVs.</h1>
+          <p class="intro">Upload the client format and candidate resumes. The app extracts, maps, and returns filled Word files with review notes.</p>
+
+          <form id="cvForm" class="upload-panel">
+            <label class="drop">
+              <span>Client format</span>
+              <strong id="templateLabel">Choose DOCX template</strong>
+              <input id="template" name="template" type="file" accept=".docx" required />
+            </label>
+
+            <label class="drop">
+              <span>Candidate resumes</span>
+              <strong id="resumeLabel">Choose PDF or DOCX resumes</strong>
+              <input id="resumes" name="resumes" type="file" accept=".pdf,.docx" multiple required />
+            </label>
+
+            <button id="submitButton" type="submit">
+              <span class="button-label">Generate CVs</span>
+              <span class="button-icon" aria-hidden="true">↑</span>
+            </button>
+
+            <p class="hint">Uses Gemini when <code>GEMINI_API_KEY</code> is set. Fallback output is marked.</p>
+          </form>
+        </div>
+
+        <div class="doc-stack" aria-hidden="true">
+          <div class="sheet sheet-a">
+            <b>General</b><span>Name of Key Expert</span><span>Education</span><span>Employment Record</span>
+          </div>
+          <div class="sheet sheet-b">
+            <b>Resume</b><span>Experience</span><span>Projects</span><span>Skills</span>
+          </div>
+          <div class="spark">✦</div>
+        </div>
+      </section>
+
+      <section class="workflow" id="workflow" aria-label="Generation workflow">
+        <div class="stepper">
+          <div class="node active"><span>01</span>Upload</div>
+          <div class="line"></div>
+          <div class="node"><span>02</span>Extract</div>
+          <div class="line"></div>
+          <div class="node"><span>03</span>Map</div>
+          <div class="line"></div>
+          <div class="node"><span>04</span>Generate</div>
+        </div>
+      </section>
+
+      <section class="results" id="results">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Output</p>
+            <h2>Generated files</h2>
+          </div>
+          <div id="status" class="status idle">No run yet.</div>
+        </div>
+        <div id="resultList" class="result-list"></div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
