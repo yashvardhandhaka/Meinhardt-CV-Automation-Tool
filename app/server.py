@@ -815,7 +815,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    host = "127.0.0.1"
+    host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", "8765"))
     print(f"CV automation app running at http://{host}:{port}")
     ThreadingHTTPServer((host, port), Handler).serve_forever()
