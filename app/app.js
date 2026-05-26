@@ -61,7 +61,6 @@ function renderResults(payload) {
     const mappingClass = item.ai_used ? "success" : "warning";
     const reviewClass = item.needs_review ? "warning" : "success";
     const aiError = item.ai_error ? `<small class="error-detail">${escapeHtml(item.ai_error)}</small>` : "";
-    const extraction = item.extraction ? `<a href="${escapeHtml(item.extraction)}">Extraction JSON</a>` : "";
 
     card.innerHTML = `
       <div>
@@ -70,10 +69,6 @@ function renderResults(payload) {
         <span class="pill ${mappingClass}">${mappingLabel}</span>
         <span class="pill ${reviewClass}">${reviewLabel}</span>
         ${aiError}
-      </div>
-      <div class="result-links">
-        ${extraction}
-        <a href="${escapeHtml(item.download)}">Download DOCX</a>
       </div>
     `;
     resultList.appendChild(card);
