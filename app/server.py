@@ -13,9 +13,7 @@ import zipfile
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="cgi")
-import cgi
+from io import BytesIO
 
 from docx import Document
 from pypdf import PdfReader
@@ -49,6 +47,52 @@ GEMINI_TIMEOUT = int(os.environ.get("GEMINI_TIMEOUT", "120"))
 
 for folder in (UPLOADS, OUTPUTS):
     folder.mkdir(exist_ok=True)
+
+
+class FormField:
+    def __init__(self, value, filename=None):
+        self.value = value
+        self.filename = filename
+        self.file = BytesIO(value)
+
+    def __bytes__(self):
+        return self.value if isinstance(self.value, bytes) else self.value.encode()
+
+
+def parse_multipart_form(content_type, body_file):
+    boundary = content_type.split("boundary=")[-1].encode().strip()
+    parts = {}
+    body_file.seek(0)
+    body = body_file.read()
+
+    for part in body.split(b"--" + boundary):
+        if not part or part == b"--\r\n" or part == b"--":
+            continue
+        if b"\r\n\r\n" not in part:
+            continue
+        header_section, content = part.split(b"\r\n\r\n", 1)
+        content = content.rstrip(b"\r\n")
+        header_text = header_section.decode("utf-8", errors="ignore")
+
+        name_match = re.search(r'name="([^"]+)"', header_text)
+        if not name_match:
+            continue
+        name = name_match.group(1)
+
+        filename_match = re.search(r'filename="([^"]+)"', header_text)
+        filename = filename_match.group(1) if filename_match else None
+
+        if name not in parts:
+            parts[name] = []
+        parts[name].append(FormField(content, filename))
+
+    # Convert single items from list to direct value
+    for key in parts:
+        if len(parts[key]) == 1:
+            parts[key] = parts[key][0]
+        # else keep as list for multiple files
+
+    return parts
 
 
 FIELD_KEYS = (
@@ -748,9 +792,13 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(404)
             return
         try:
-            form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ={"REQUEST_METHOD": "POST"})
-            template = form["template"] if "template" in form else None
-            resumes = form["resumes"] if "resumes" in form else []
+            content_length = int(self.headers.get("Content-Length", 0))
+            body_file = BytesIO(self.rfile.read(content_length))
+            content_type = self.headers.get("Content-Type", "")
+            form = parse_multipart_form(content_type, body_file)
+
+            template = form.get("template") if "template" in form else None
+            resumes = form.get("resumes") if "resumes" in form else []
             if not isinstance(resumes, list):
                 resumes = [resumes]
             resumes = [item for item in resumes if getattr(item, "filename", "")]
